@@ -10,6 +10,7 @@ class Vendor(models.Model):
     qualityRatingAvg = models.FloatField(db_column='quality_rating_avg', default=0)
     averageResponseTime = models.FloatField(db_column='average_response_time', default=0)
     fulfillmentRate = models.FloatField(db_column='fulfillment_rate', default=0)
+    status = models.IntegerField(db_column='status', default=1)
 
     def __str__(self):
         return self.name
