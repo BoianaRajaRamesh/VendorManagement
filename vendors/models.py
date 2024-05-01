@@ -18,7 +18,7 @@ class Vendor(models.Model):
 class VendorPerformance(models.Model):
     id = models.AutoField(primary_key=True, db_index=True, db_column='id')
     vendor = models.ForeignKey(Vendor, db_column='vendor_id', null=True, on_delete=models.SET_NULL)
-    date = models.DateTimeField(db_column='created_date')
+    date = models.DateField(db_column='created_date')
     onTimeDeliveryRate = models.FloatField(db_column='on_time_delivery_rate', default=0)
     qualityRatingAvg = models.FloatField(db_column='quality_rating_avg', default=0)
     averageResponseTime = models.FloatField(db_column='average_response_time', default=0)
@@ -26,3 +26,4 @@ class VendorPerformance(models.Model):
 
     def __str__(self):
         return f"{self.vendor} - {self.date}"
+    

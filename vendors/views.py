@@ -52,3 +52,17 @@ class ManageVendor(APIView):
         vendor.save()
         # vendor.delete()
         return Response({'status': 'success', 'message': 'Vendor details deleted successfully'},status=status.HTTP_200_OK)
+    
+class Performance(APIView):
+    @swagger_auto_schema()
+    def get(self, request, vendor_id):
+        vendor = Vendor.objects.filter(pk=vendor_id).get()
+        if vendor:
+            performance_data = {
+                'onTimeDeliveryRate': vendor.onTimeDeliveryRate,
+                'qualityRatingAvg': vendor.qualityRatingAvg,
+                'averageResponseTime': vendor.averageResponseTime,
+                'fulfillmentRate': vendor.fulfillmentRate
+            }
+            return Response({'status': 'success', 'message': 'Performance data', 'details':performance_data},status=status.HTTP_200_OK)
+        return Response({'error': "Vendor not found"}, status=status.HTTP_400_BAD_REQUEST)
