@@ -1,3 +1,4 @@
-mysqlclient
-drf-yasg>=1.21.7
-
+django==3.2.10
+mysqlclient==2.1.0
+djangorestframework==3.12.4
+drf-yasg==1.20.0
