@@ -1,1 +1,3 @@
 mysqlclient
+drf-yasg>=1.21.7
+

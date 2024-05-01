@@ -10,7 +10,7 @@ STATUS = (
 class PurchaseOrder(models.Model):
     id = models.AutoField(primary_key=True, db_index=True, db_column='id')
     poNumber = models.CharField(max_length=100, db_column='po_number', unique=True)
-    vendor = models.ForeignKey('Vendor', db_column='vendor_id', null=True, on_delete=models.SET_NULL)
+    vendor = models.ForeignKey(Vendor, db_column='vendor_id', null=True, on_delete=models.SET_NULL)
     orderDate = models.DateTimeField(db_column='order_date')
     deliveryDate = models.DateTimeField(db_column='delivery_date')
     items = models.JSONField(db_column='items')
