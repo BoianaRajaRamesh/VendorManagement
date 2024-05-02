@@ -36,61 +36,59 @@ class PurchaseOrder(models.Model):
 @receiver(post_save, sender=PurchaseOrder)
 def update_vendor_data(sender, instance, created, **kwargs):    
     vendor = instance.vendor
-    # if instance.orderStatus == 'completed' or (instance.acknowledgmentDate is not None and instance.acknowledgmentDate != ""): #added condition to decrease load on db but as of disabled
+    today = timezone.now().date()
+    vendor_performance, _ = VendorPerformance.objects.get_or_create(vendor=vendor, date=today)
+    if instance.orderStatus == 'completed': #added condition to decrease load on db but as of disabled
+        # On-Time Delivery Rate
+        completed_orders = PurchaseOrder.objects.filter(vendor=vendor, status = 1, orderStatus='completed')
+        total_completed_orders = completed_orders.count()
+        if total_completed_orders > 0:
+            on_time_delivered_orders = completed_orders.filter(deliveryDate__gt=F('completedDate')).count()
+            on_time_delivered_orders = on_time_delivered_orders if on_time_delivered_orders > 0 else 0
+            onTimeDeliveryRate = round(on_time_delivered_orders / total_completed_orders ,2)
+        else:
+            onTimeDeliveryRate = 0
+        vendor.onTimeDeliveryRate = onTimeDeliveryRate
 
-    # On-Time Delivery Rate
-    completed_orders = PurchaseOrder.objects.filter(vendor=vendor, status = 1, orderStatus='completed')
-    total_completed_orders = completed_orders.count()
-    if total_completed_orders > 0:
-        on_time_delivered_orders = completed_orders.filter(deliveryDate__gt=F('completedDate')).count()
-        on_time_delivered_orders = on_time_delivered_orders if on_time_delivered_orders > 0 else 0
-        onTimeDeliveryRate = round(on_time_delivered_orders / total_completed_orders ,2)
-    else:
-        onTimeDeliveryRate = 0
-    vendor.onTimeDeliveryRate = onTimeDeliveryRate
+        # Quality Rating Average
+        total_quality_rating = completed_orders.filter(qualityRating__isnull=False).aggregate(total_quality_rating=Avg('qualityRating'))['total_quality_rating']
+        if total_quality_rating is not None and total_quality_rating > 0:
+            qualityRatingAvg = round(total_quality_rating , 2)
+        else:
+            qualityRatingAvg = 0
+        vendor.qualityRatingAvg = qualityRatingAvg
 
-    # Quality Rating Average
-    total_quality_rating = completed_orders.filter(qualityRating__isnull=False).aggregate(total_quality_rating=Avg('qualityRating'))['total_quality_rating']
-    if total_quality_rating is not None and total_quality_rating > 0:
-        qualityRatingAvg = round(total_quality_rating , 2)
-    else:
-        qualityRatingAvg = 0
-    vendor.qualityRatingAvg = qualityRatingAvg
-
-    # Average Response Time
-    average_time_difference = PurchaseOrder.objects.filter(status = 1, vendor=vendor).aggregate(
-                    avg_time_difference=Avg(
-                        ExpressionWrapper(
-                            F('acknowledgmentDate') - F('issueDate'),
-                            output_field=DurationField()
+        # Fulfillment Rate
+        total_orders = PurchaseOrder.objects.filter(status = 1, vendor=vendor).count()
+        if total_orders > 0:
+            successful_orders = completed_orders.count()
+            successful_orders = successful_orders if successful_orders > 0 else 0
+            fulfillmentRate = round(successful_orders / total_orders ,2)
+        else:
+            fulfillmentRate = 0
+        vendor.fulfillmentRate = fulfillmentRate
+        vendor.save()# Update Vendor changes
+        
+        vendor_performance.onTimeDeliveryRate = onTimeDeliveryRate
+        vendor_performance.qualityRatingAvg = qualityRatingAvg
+        vendor_performance.fulfillmentRate = fulfillmentRate
+        vendor_performance.save()
+    elif instance.acknowledgmentDate is not None and instance.acknowledgmentDate != "":
+        # Average Response Time
+        average_time_difference = PurchaseOrder.objects.filter(status = 1, vendor=vendor).aggregate(
+                        avg_time_difference=Avg(
+                            ExpressionWrapper(
+                                F('acknowledgmentDate') - F('issueDate'),
+                                output_field=DurationField()
+                            )
                         )
-                    )
-                )['avg_time_difference']
-    if average_time_difference is not None and average_time_difference > 0:
-        average_time_difference_seconds = average_time_difference.total_seconds()
-        average_time_difference = round(average_time_difference_seconds, 2)
-    else:
-        average_time_difference = 0
-    vendor.averageResponseTime = average_time_difference
-
-    # Fulfillment Rate
-    total_orders = PurchaseOrder.objects.filter(status = 1, vendor=vendor).count()
-    if total_orders > 0:
-        successful_orders = completed_orders.count()
-        successful_orders = successful_orders if successful_orders > 0 else 0
-        fulfillmentRate = round(successful_orders / total_orders ,2)
-    else:
-        fulfillmentRate = 0
-    vendor.fulfillmentRate = fulfillmentRate
-    vendor.save()# Update Vendor changes
-
-    VendorPerformance.objects.get_or_create( #create if record not present with today date
-        vendor=vendor,
-        date=date.today(),
-        defaults={
-            'onTimeDeliveryRate': onTimeDeliveryRate,
-            'qualityRatingAvg': qualityRatingAvg,
-            'averageResponseTime': average_time_difference,
-            'fulfillmentRate': fulfillmentRate
-        }
-    )
+                    )['avg_time_difference']
+        if average_time_difference is not None:
+            average_time_difference_seconds = average_time_difference.total_seconds()
+            average_time_difference = round(average_time_difference_seconds, 2)
+        else:
+            average_time_difference = 0
+        vendor.averageResponseTime = average_time_difference
+        vendor_performance.averageResponseTime = average_time_difference
+        vendor_performance.save()
+        
