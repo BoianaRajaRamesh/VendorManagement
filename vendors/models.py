@@ -2,7 +2,7 @@ from django.db import models
 
 class Vendor(models.Model):
     id = models.AutoField(primary_key=True, db_index=True, db_column='id')
-    vendorCode = models.CharField(max_length=20, unique=True, null=False)
+    vendorCode = models.CharField(max_length=100, unique=True, null=False)
     name = models.CharField(db_column='name', max_length=1000, null=True)
     contactDetails = models.TextField(db_column='contact_details', null=True, blank=True)
     address = models.TextField(db_column='address', null=True, blank=True)

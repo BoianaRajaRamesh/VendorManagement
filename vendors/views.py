@@ -5,10 +5,12 @@ from .models import Vendor
 from .serializers import VendorSerializer
 from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
+from utils import check_token
 
 class AddVendor(APIView):
     @swagger_auto_schema(request_body=VendorSerializer)
     def post(self, request):
+        check_token(request)
         serializer = VendorSerializer(data=request.data)
         if serializer.is_valid():
             vendor = serializer.save()
@@ -18,6 +20,7 @@ class AddVendor(APIView):
 
     @swagger_auto_schema()
     def get(self, request):
+        check_token(request)
         vendors = Vendor.objects.filter(status=1).all()
         total_count = vendors.count()  
         serialized_vendors = VendorSerializer(vendors, many=True)
@@ -33,12 +36,14 @@ class ManageVendor(APIView):
         
     @swagger_auto_schema()
     def get(self, request, vendor_id):
+        check_token(request)
         vendor = self.get_object(vendor_id)
         serializer = VendorSerializer(vendor)
         return Response({'status': 'success', 'message': 'Vendors details', 'details':serializer.data}, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(request_body=VendorSerializer)
     def put(self, request, vendor_id):
+        check_token(request)
         vendor = self.get_object(vendor_id)
         serializer = VendorSerializer(vendor, data=request.data)
         if serializer.is_valid():
@@ -47,6 +52,7 @@ class ManageVendor(APIView):
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, vendor_id):
+        check_token(request)
         vendor = self.get_object(vendor_id)
         vendor.status = 0
         vendor.save()
@@ -56,6 +62,7 @@ class ManageVendor(APIView):
 class Performance(APIView):
     @swagger_auto_schema()
     def get(self, request, vendor_id):
+        check_token(request)
         vendor = Vendor.objects.filter(pk=vendor_id).get()
         if vendor:
             performance_data = {

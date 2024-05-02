@@ -8,10 +8,12 @@ from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.utils import timezone
+from utils import check_token
 
 class Orders(APIView):
     @swagger_auto_schema(request_body=PurchaseOrderSerializer)
     def post(self, request):
+        check_token(request)
         serializer = PurchaseOrderSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -23,6 +25,7 @@ class Orders(APIView):
         openapi.Parameter('order_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, description='Order ID (optional)')
     ])
     def get(self, request):
+        check_token(request)
         vendor_id = request.query_params.get('vendor_id')
         order_id = request.query_params.get('order_id')
         if vendor_id is not None:
@@ -49,6 +52,7 @@ class ManageOrders(APIView):
         
     @swagger_auto_schema(request_body=ManagePurchaseOrderSerializer)
     def put(self, request, order_id):
+        check_token(request)
         order = self.get_object(order_id)
         serializer = ManagePurchaseOrderSerializer(order, data=request.data)
         if serializer.is_valid():
@@ -61,6 +65,7 @@ class ManageOrders(APIView):
 
     @swagger_auto_schema()
     def delete(self, request, order_id):
+        check_token(request)
         po = self.get_object(order_id)
         po.delete()
         return Response({'status': 'success', 'message': 'Order deleted successfully'},status=status.HTTP_200_OK)
@@ -68,6 +73,7 @@ class ManageOrders(APIView):
 class Acknowledgement(APIView):
     @swagger_auto_schema()
     def post(self, request, order_id):
+        check_token(request)
         order = PurchaseOrder.objects.filter(pk=order_id).get()
         if order:
             order.acknowledgmentDate = timezone.now()
