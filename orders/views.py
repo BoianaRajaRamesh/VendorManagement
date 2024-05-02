@@ -30,14 +30,14 @@ class Orders(APIView):
         order_id = request.query_params.get('order_id')
         if vendor_id is not None:
             try:
-                vendor = Vendor.objects.get(id=vendor_id)
+                vendor = Vendor.objects.filter(status = 1,id=vendor_id).get()
                 pos = PurchaseOrder.objects.filter(vendor=vendor)
             except Vendor.DoesNotExist:
                 raise Http404("Vendor details not found")
         elif order_id is not None:
-            pos = PurchaseOrder.objects.filter(id=order_id)
+            pos = PurchaseOrder.objects.filter(status = 1,id=order_id)
         else:
-            pos = PurchaseOrder.objects.all()
+            pos = PurchaseOrder.objects.filter(status = 1).all()
         total_count = pos.count()
         serialized_pos = PurchaseOrderSerializer(pos, many=True)
         return Response({'status': 'success', 'message': 'Orders list', 'total_count': total_count, 'list': serialized_pos.data}, status=status.HTTP_200_OK)
@@ -46,7 +46,7 @@ class ManageOrders(APIView):
     
     def get_object(self, pk):
         try:
-            return PurchaseOrder.objects.filter(pk=pk).get()
+            return PurchaseOrder.objects.filter(status = 1, pk=pk).get()
         except PurchaseOrder.DoesNotExist:
             raise Http404("Order details not found")
         
@@ -57,7 +57,7 @@ class ManageOrders(APIView):
         serializer = ManagePurchaseOrderSerializer(order, data=request.data)
         if serializer.is_valid():
             validated_data = serializer.validated_data
-            if validated_data['status'] == 'completed':
+            if validated_data['orderStatus'] == 'completed':
                 validated_data['completedDate'] = timezone.now()
             serializer.save()
             return Response({'status': 'success', 'message': 'Order details updated successfully', 'details': serializer.data}, status=status.HTTP_200_OK)
@@ -67,14 +67,16 @@ class ManageOrders(APIView):
     def delete(self, request, order_id):
         check_token(request)
         po = self.get_object(order_id)
-        po.delete()
+        po.status = 0
+        po.save()
+        # po.delete()
         return Response({'status': 'success', 'message': 'Order deleted successfully'},status=status.HTTP_200_OK)
     
 class Acknowledgement(APIView):
     @swagger_auto_schema()
     def post(self, request, order_id):
         check_token(request)
-        order = PurchaseOrder.objects.filter(pk=order_id).get()
+        order = PurchaseOrder.objects.filter(status = 1,pk=order_id).get()
         if order:
             order.acknowledgmentDate = timezone.now()
             order.save()

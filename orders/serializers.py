@@ -12,6 +12,7 @@ class ItemSerializer(serializers.Serializer):
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     poNumber = serializers.CharField(read_only=True) 
     status = serializers.CharField(read_only=True)
+    orderStatus = serializers.CharField(read_only=True)
     orderDate = serializers.CharField(read_only=True)
     # deliveryDate = serializers.CharField(read_only=True)
     completedDate = serializers.CharField(read_only=True)
@@ -29,7 +30,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         if delivery_date < (timezone.now() + timedelta(days=2)):
             raise serializers.ValidationError("Delivery date must be at least 2 days from today.")
         
-        validated_data['status'] = 'pending'
+        validated_data['orderStatus'] = 'pending'
         validated_data['poNumber'] = timezone.now()
         return super().create(validated_data)
 
@@ -37,4 +38,4 @@ class ManagePurchaseOrderSerializer(serializers.ModelSerializer):
     completedDate = serializers.CharField(read_only=True)
     class Meta:
         model = PurchaseOrder
-        fields = ['status', 'qualityRating', 'completedDate'] 
+        fields = ['orderStatus', 'qualityRating', 'completedDate'] 
