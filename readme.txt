@@ -5,7 +5,16 @@
     pip install djangorestframework
 3.Install Project Dependencies:
     pip install -r requirements.txt
-4.Run the Project:
+4.Update Database Configuration:
+    Navigate to the settings.py file in your Django project.
+    Locate the DATABASES setting.
+    Update the database configuration, change the database engine (ENGINE), database name (NAME), username (USER), password (PASSWORD), host (HOST), and port (PORT).
+5.Generate Migrations:
+    python manage.py makemigrations
+    already migrations are there in code, if any error got just skip it and follow next step.
+6.Apply Migrations:
+    python manage.py migrate
+7.Run the Project:
     python manage.py runserver
     access the project using url: http://127.0.0.1:8000
     -------------
@@ -13,7 +22,6 @@
         python manage.py runserver <port_number>
         EX: python manage.py runserver 8080
         access the project using url: http://127.0.0.1:8080
-
-To access APIs, use the bearer token "rajaramesh". You can utilize the Swagger UI available at <base_url>/docs/. This interface allows you to interact with all APIs, including their requests and responses. When using Swagger for authentication, remember to prepend "Bearer" before the token, like so: "Bearer rajaramesh".
-
-In Swagger, there is a detailed explanation or description of APIs available. Please refer to it.
+8.Documentation
+    To access APIs, use the bearer token "rajaramesh". You can utilize the Swagger UI available at <base_url>/docs/. This interface allows you to interact with all APIs, including their requests and responses. When using Swagger for authentication, remember to prepend "Bearer" before the token, like so: "Bearer rajaramesh".
+    In Swagger, there is a detailed explanation or description with request and responce of APIs available. Please refer to it.
