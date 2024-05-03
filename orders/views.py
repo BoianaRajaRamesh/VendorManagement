@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import PurchaseOrder
 from vendors.models import Vendor
-from .serializers import PurchaseOrderSerializer, ManagePurchaseOrderSerializer
+from .serializers import PurchaseOrderSerializer, ManagePurchaseOrderSerializer, PurchaseOrderDeliveryDateSerializer, SavePurchaseOrderSerializer
 from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -11,13 +11,14 @@ from django.utils import timezone
 from utils import check_token
 
 class Orders(APIView):
-    @swagger_auto_schema(request_body=PurchaseOrderSerializer)
+    @swagger_auto_schema(request_body=SavePurchaseOrderSerializer)
     def post(self, request):
         check_token(request)
-        serializer = PurchaseOrderSerializer(data=request.data)
+        serializer = SavePurchaseOrderSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({'status': 'success', 'message': 'Order created successfully', 'details': serializer.data},status=status.HTTP_201_CREATED)
+            order_id = serializer.save()
+            orderDetails = PurchaseOrderSerializer(PurchaseOrder.objects.get(id=order_id)).data
+            return Response({'status': 'success', 'message': 'Order created successfully', 'details': orderDetails},status=status.HTTP_201_CREATED)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
     @swagger_auto_schema(manual_parameters=[
@@ -73,14 +74,19 @@ class ManageOrders(APIView):
         return Response({'status': 'success', 'message': 'Order deleted successfully'},status=status.HTTP_200_OK)
     
 class Acknowledgement(APIView):
-    @swagger_auto_schema()
+    @swagger_auto_schema(request_body=PurchaseOrderDeliveryDateSerializer)
     def post(self, request, order_id):
         check_token(request)
-        order = PurchaseOrder.objects.filter(status = 1,pk=order_id).get()
-        if order:
-            order.acknowledgmentDate = timezone.now()
-            order.save()
-            return Response({'status': 'success', 'message': 'Order acknowledged successfully'},status=status.HTTP_200_OK)
-        return Response({'error': "Order not found"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = PurchaseOrderDeliveryDateSerializer(data=request.data)
+        if serializer.is_valid():
+            order = PurchaseOrder.objects.filter(status = 1,pk=order_id).get()
+            if order:
+                order.acknowledgmentDate = timezone.now()
+                order.deliveryDate = serializer.data['deliveryDate']
+                order.save()
+                return Response({'status': 'success', 'message': 'Order acknowledged successfully'},status=status.HTTP_200_OK)
+            return Response({'error': "Order not found"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
         
 
