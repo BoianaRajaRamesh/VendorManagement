@@ -11,7 +11,7 @@ from django.utils import timezone
 from utils import check_token
 
 class Orders(APIView):
-    @swagger_auto_schema(request_body=SavePurchaseOrderSerializer)
+    @swagger_auto_schema(request_body=SavePurchaseOrderSerializer, operation_description="This API endpoint is used to create a new purchase order. On successful creation, it returns a success message along with the details of the created order. <br /> If the request body is invalid or contains errors, it returns an error message along with details of the validation errors encountered during processing.")
     def post(self, request):
         check_token(request)
         serializer = SavePurchaseOrderSerializer(data=request.data)
@@ -24,7 +24,7 @@ class Orders(APIView):
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter('vendor_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, description='Vendor ID (optional)'),
         openapi.Parameter('order_id', openapi.IN_QUERY, type=openapi.TYPE_INTEGER, required=False, description='Order ID (optional)')
-    ])
+    ], operation_description="This API endpoint retrieves a list of orders based on optional query parameters. If no options are provided, the total list will be retrieved. It also includes the total count of orders.")
     def get(self, request):
         check_token(request)
         vendor_id = request.query_params.get('vendor_id')
@@ -51,7 +51,7 @@ class ManageOrders(APIView):
         except PurchaseOrder.DoesNotExist:
             raise Http404("Order details not found")
         
-    @swagger_auto_schema(request_body=ManagePurchaseOrderSerializer)
+    @swagger_auto_schema(request_body=ManagePurchaseOrderSerializer, operation_description="This API endpoint is used to update an existing purchase order.")
     def put(self, request, order_id):
         check_token(request)
         order = self.get_object(order_id)
@@ -64,7 +64,7 @@ class ManageOrders(APIView):
             return Response({'status': 'success', 'message': 'Order details updated successfully', 'details': serializer.data}, status=status.HTTP_200_OK)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema()
+    @swagger_auto_schema(operation_description="This API endpoint deactivates the details of a specific order identified by order id. Instead of deleting, it disables the order by updating its status field.")
     def delete(self, request, order_id):
         check_token(request)
         po = self.get_object(order_id)
@@ -74,7 +74,7 @@ class ManageOrders(APIView):
         return Response({'status': 'success', 'message': 'Order deleted successfully'},status=status.HTTP_200_OK)
     
 class Acknowledgement(APIView):
-    @swagger_auto_schema(request_body=PurchaseOrderDeliveryDateSerializer)
+    @swagger_auto_schema(request_body=PurchaseOrderDeliveryDateSerializer, operation_description="This API endpoint is used to acknowledge the receipt of an order and update its delivery date.")
     def post(self, request, order_id):
         check_token(request)
         serializer = PurchaseOrderDeliveryDateSerializer(data=request.data)
