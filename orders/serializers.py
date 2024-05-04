@@ -39,7 +39,14 @@ class PurchaseOrderDeliveryDateSerializer(serializers.ModelSerializer):
 class ManagePurchaseOrderSerializer(serializers.ModelSerializer):
     completedDate = serializers.DateTimeField(read_only=True)
     orderStatus = serializers.ChoiceField(required=True, choices=STATUS)
+    # qualityRating = serializers.FloatField(required=True, min_value=0.5, max_value=5.0)
+    class Meta:
+        model = PurchaseOrder
+        fields = ['orderStatus', 'completedDate'] 
+
+
+class QualityRatingOrderSerializer(serializers.ModelSerializer):
     qualityRating = serializers.FloatField(required=True, min_value=0.5, max_value=5.0)
     class Meta:
         model = PurchaseOrder
-        fields = ['orderStatus', 'qualityRating', 'completedDate'] 
+        fields = ['qualityRating'] 

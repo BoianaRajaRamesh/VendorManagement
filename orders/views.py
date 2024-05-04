@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import PurchaseOrder
 from vendors.models import Vendor
-from .serializers import PurchaseOrderSerializer, ManagePurchaseOrderSerializer, PurchaseOrderDeliveryDateSerializer, SavePurchaseOrderSerializer
+from .serializers import *
 from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -75,7 +75,7 @@ class ManageOrders(APIView):
     
 class Acknowledgement(APIView):
     @swagger_auto_schema(request_body=PurchaseOrderDeliveryDateSerializer, operation_description="This API endpoint is used to acknowledge the receipt of an order and update its delivery date.")
-    def post(self, request, order_id):
+    def put(self, request, order_id):
         check_token(request)
         serializer = PurchaseOrderDeliveryDateSerializer(data=request.data)
         if serializer.is_valid():
@@ -88,5 +88,18 @@ class Acknowledgement(APIView):
             return Response({'error': "Order not found"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         
-        
+class QualityRating(APIView):
+    @swagger_auto_schema(request_body=QualityRatingOrderSerializer, operation_description="This API endpoint is used to rate the order.")
+    def put(self, request, order_id):
+        check_token(request)
+        try:
+            order = PurchaseOrder.objects.filter(status = 1,pk=order_id).get()
+        except:
+            return Response({'error': "order not found"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = QualityRatingOrderSerializer(order, data=request.data)
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            serializer.save()
+            return Response({'status': 'success', 'message': 'Order rating added successfully'},status=status.HTTP_200_OK)
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
