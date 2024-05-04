@@ -6,7 +6,7 @@
 3.Install Project Dependencies:
     pip install -r requirements.txt
 4.Update Database Configuration:
-    Navigate to the settings.py file in your Django project.
+    Navigate to the VendorManagement/settings.py file in your Django project.
     Locate the DATABASES setting.
     Update the database configuration, change the database engine (ENGINE), database name (NAME), username (USER), password (PASSWORD), host (HOST), and port (PORT).
 5.Generate Migrations:
@@ -23,5 +23,5 @@
         EX: python manage.py runserver 8080
         access the project using url: http://127.0.0.1:8080
 8.Documentation
-    To access APIs, use the bearer token "rajaramesh". You can utilize the Swagger UI available at <base_url>/docs/. This interface allows you to interact with all APIs, including their requests and responses. When using Swagger for authentication, remember to prepend "Bearer" before the token, like so: "Bearer rajaramesh".
+    You can utilize the Swagger UI available at <base_url>/docs/. This interface allows you to interact with all APIs, including their requests and responses. When using Swagger for authentication, remember to prepend "Bearer" before the token, like so: "Bearer rajaramesh". To access APIs, use the bearer token "rajaramesh". Additionally, you can add new tokens in VendorManagement/settings.py (TOKENS).
     In Swagger, there is a detailed explanation or description with request and responce of APIs available. Please refer to it.
